@@ -64,7 +64,10 @@ exprRight: (K_AND | K_OR) compE ;
 
 hasRClause: K_HASR identifier;
 
-hasLeafClause: K_HASLEAF identifier (K_AS identifier)?;
+isLikeClause: K_ISLIKE identifier;
+
+repeatDownTillClause: K_
+                       identifier;
 
 compE: comparisonClause
     | isClause
@@ -100,7 +103,7 @@ selectClause: K_SELECT selectExpr ;
 
 hasRExpression: hasRClause (K_AS identifier)? ;
 
-singleQrySrc: fromClause | hasRExpression| hasLeafClause | whereClause | fromExpression | expr ;
+singleQrySrc: fromClause | hasRExpression| repeatDownTillClause | isLikeClause| whereClause | fromExpression | expr ;
 
 groupByExpression: K_GROUPBY K_LPAREN selectExpr K_RPAREN ;
 

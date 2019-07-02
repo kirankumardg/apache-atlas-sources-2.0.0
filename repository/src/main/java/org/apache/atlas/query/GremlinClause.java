@@ -76,7 +76,10 @@ enum GremlinClause {
     INV("inV()"),
     INE("inE()"),
     OUTV("outV()"),
-    PARTIALTRAIT("outE('classifiedAs').has('__name', within('%s'))");
+    PARTIALTRAIT("outE('classifiedAs').has('__name', within('%s'))"),
+    REPEATDOWNTILL("repeat(outE().inV()).emit(or(__.has('__superTypeNames', '%s'),__.has('__typeName', '%s')))"),
+
+    ISLIKE("outE('classifiedAs').filter{it.get().value('__name').matches('.*%s.*')}.outV()");
 
 
     private final String template;

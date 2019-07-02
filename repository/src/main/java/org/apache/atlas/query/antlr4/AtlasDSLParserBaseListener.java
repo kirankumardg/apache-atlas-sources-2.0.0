@@ -268,13 +268,25 @@ public class AtlasDSLParserBaseListener implements AtlasDSLParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterHasLeafClause(AtlasDSLParser.HasLeafClauseContext ctx) { }
+	@Override public void enterIsLikeClause(AtlasDSLParser.IsLikeClauseContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitHasLeafClause(AtlasDSLParser.HasLeafClauseContext ctx) { }
+	@Override public void exitIsLikeClause(AtlasDSLParser.IsLikeClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRepeatDownTillClause(AtlasDSLParser.RepeatDownTillClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRepeatDownTillClause(AtlasDSLParser.RepeatDownTillClauseContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

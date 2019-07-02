@@ -189,13 +189,23 @@ public class DSLVisitor extends AtlasDSLParserBaseVisitor<Void> {
 
 
     @Override
-    public Void visitHasLeafClause(HasLeafClauseContext ctx) {
+    public Void visitIsLikeClause(IsLikeClauseContext ctx) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("=> DSLVisitor.visitHasLeafClause({})", ctx);
+            LOG.debug("=> DSLVisitor.visitIsLikeClause({})", ctx);
         }
-        gremlinQueryComposer.addHasLeafClause(ctx.identifier().getText());
+        gremlinQueryComposer.addIsLikeClause(ctx.identifier().getText());
 
-        return super.visitHasLeafClause(ctx);
+        return super.visitIsLikeClause(ctx);
+    }
+
+    @Override
+    public Void visitRepeatDownTillClause(RepeatDownTillClauseContext ctx) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("=> DSLVisitor.visitRepeatDownTillClause({})", ctx);
+        }
+        gremlinQueryComposer.addRepeatDownTillClause(ctx.identifier().getText());
+
+        return super.visitRepeatDownTillClause(ctx);
     }
 
     private Void visitIsClause(GremlinQueryComposer gqc, IsClauseContext ctx) {

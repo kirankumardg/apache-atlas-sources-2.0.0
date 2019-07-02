@@ -164,7 +164,14 @@ public class AtlasDSLParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> im
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitHasLeafClause(AtlasDSLParser.HasLeafClauseContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIsLikeClause(AtlasDSLParser.IsLikeClauseContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitRepeatDownTillClause(AtlasDSLParser.RepeatDownTillClauseContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
