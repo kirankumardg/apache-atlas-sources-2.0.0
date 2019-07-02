@@ -36,7 +36,9 @@ import static org.testng.Assert.fail;
 public class GremlinQueryComposerTest {
     @Test
     public void classification() {
-        String expected = "g.V().outE('classifiedAs').has('__name', within('PII')).outV().dedup().limit(25).toList()";
+        //String expected = "g.V().outE('classifiedAs').has('__name', within('PII')).outV().dedup().limit(25).toList()";
+        String expected = "g.V().has('__typeName', 'PII').dedup().limit(25).toList()";
+
         verify("PII", expected);
     }
 
@@ -147,27 +149,26 @@ public class GremlinQueryComposerTest {
     }
 
 
+
+
     @Test
-    public void HASLeafTest() {
+    public void repeatclausetest() {
         String expected =
-                "g.V().has('__typeName', 'DB').as('d').has('DB.name', eq('db')).repeat(bothE().bothV()).emit(has('__typeName', 'Table')).has('DB.name', eq(\"hive\")).dedup().limit(25).toList()";
-        verify("from DB as d where d.name='db' hasleaf Table where name=\"hive\"", expected);
+                "g.V().has('__typeName', 'hive_table').outE('classifiedAs').has('__name', within('Dimension')).outV().repeat(outE().inV()).emit(or(__.has('__superTypeNames', 'atomic_dataset'),__.has('__typeName', 'atomic_dataset'))).dedup().limit(25).toList()";
+        verify("from hive_table where hive_table isa Dimension repeatdowntill atomic_dataset", expected);
 
     }
 
     @Test
-    public void classificationWithConditionTest() {
+    public void repeatclausetest1() {
         String expected =
-                "g.V().has('__typeName', 'Table').outE('classifiedAs').has('__name', within('Dimension')).inV().has('Dimension.name', eq(\"test\")).inE().outV().dedup().limit(25).toList()";
-
-
-        verify("Table isa Dimension having Dimension.name=\"test\"", expected);
-
-
-
-      //  verify("hive_column isa realm having realm.value=\"test\"", expected);
+                "g.V().has('__typeName', 'hive_table').outE('classifiedAs').has('__name', within('Dimension')).outV().repeat(outE().inV()).emit(or(__.has('__superTypeNames', 'atomic_dataset'),__.has('__typeName', 'atomic_dataset'))).dedup().limit(25).toList()";
+        verify("from hive_table where name=\"test\"", expected);
 
     }
+
+
+
 
     @Test
     public void fromDBOrderByNameDesc() {

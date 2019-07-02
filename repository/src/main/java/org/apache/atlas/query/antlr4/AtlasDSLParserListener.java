@@ -218,15 +218,25 @@ public interface AtlasDSLParserListener extends ParseTreeListener {
 	 */
 	void exitHasRClause(AtlasDSLParser.HasRClauseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link AtlasDSLParser#hasLeafClause}.
+	 * Enter a parse tree produced by {@link AtlasDSLParser#isLikeClause}.
 	 * @param ctx the parse tree
 	 */
-	void enterHasLeafClause(AtlasDSLParser.HasLeafClauseContext ctx);
+	void enterIsLikeClause(AtlasDSLParser.IsLikeClauseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link AtlasDSLParser#hasLeafClause}.
+	 * Exit a parse tree produced by {@link AtlasDSLParser#isLikeClause}.
 	 * @param ctx the parse tree
 	 */
-	void exitHasLeafClause(AtlasDSLParser.HasLeafClauseContext ctx);
+	void exitIsLikeClause(AtlasDSLParser.IsLikeClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link AtlasDSLParser#repeatDownTillClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterRepeatDownTillClause(AtlasDSLParser.RepeatDownTillClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AtlasDSLParser#repeatDownTillClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitRepeatDownTillClause(AtlasDSLParser.RepeatDownTillClauseContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link AtlasDSLParser#compE}.
 	 * @param ctx the parse tree

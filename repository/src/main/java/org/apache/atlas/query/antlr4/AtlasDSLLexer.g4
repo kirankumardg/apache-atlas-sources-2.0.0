@@ -143,6 +143,10 @@ K_HASR: H A S R ;
 
 K_HASLEAF: H A S L E A F;
 
+K_REPEATDOWNTILL: R E P E A T D O W N T I L L;
+
+K_ISLIKE: I S L I K E;
+
 KEYWORD: K_LIKE
         | K_DOT
         | K_SELECT
@@ -168,6 +172,8 @@ KEYWORD: K_LIKE
         | K_COUNT
         | K_HASR
         | K_HASLEAF
+        | K_REPEATDOWNTILL
+        | K_ISLIKE
         ;
 
 ID: STRING

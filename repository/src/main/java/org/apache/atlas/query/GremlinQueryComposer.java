@@ -114,23 +114,23 @@ public class GremlinQueryComposer {
 
             IdentifierHelper.Info ia = createInfo(typeInfo.get());
 
-            if (ia.isTrait()) {
-                String traitName = ia.get();
-
-                if (traitName.equalsIgnoreCase(ALL_CLASSIFICATIONS)) {
-                    addTrait(GremlinClause.ANY_TRAIT, ia);
-                } else if (traitName.equalsIgnoreCase(NO_CLASSIFICATIONS)) {
-                    addTrait(GremlinClause.NO_TRAIT, ia);
-                } else {
-                    addTrait(GremlinClause.TRAIT, ia);
-                }
-            } else {
+//            if (ia.isTrait()) {
+//                String traitName = ia.get();
+//
+//                if (traitName.equalsIgnoreCase(ALL_CLASSIFICATIONS)) {
+//                    addTrait(GremlinClause.ANY_TRAIT, ia);
+//                } else if (traitName.equalsIgnoreCase(NO_CLASSIFICATIONS)) {
+//                    addTrait(GremlinClause.NO_TRAIT, ia);
+//                } else {
+//                    addTrait(GremlinClause.TRAIT, ia);
+//                }
+//            } else {
                 if (ia.hasSubtypes()) {
                     add(GremlinClause.HAS_TYPE_WITHIN, ia.getSubTypes());
                 } else {
                     add(GremlinClause.HAS_TYPE, ia);
                 }
-            }
+            //}
         } else {
             IdentifierHelper.Info ia = createInfo(typeInfo.get());
             introduceType(ia);
@@ -165,98 +165,64 @@ public class GremlinQueryComposer {
         }
     }
 
-    public void addInV() {
-        add(GremlinClause.INV);
-    }
-
-    public void addInE() {
-        add(GremlinClause.INE);
-
-    }
-
-    public void addOutV() {
-        add(GremlinClause.OUTV);
-    }
-
-    public void addHavingClause(String lhs, String operator, String rhs) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("addWhere(lhs={}, operator={}, rhs={})", lhs, operator, rhs);
-        }
-
-        String                currentType = context.getActiveTypeName();
-        IdentifierHelper.Info org         = null;
-        IdentifierHelper.Info lhsI        = createInfo(lhs);
-        if (!lhsI.isPrimitive()) {
-            introduceType(lhsI);
-            org = lhsI;
-            lhsI = createInfo(lhs);
-        }
-
-
-        if (lhsI.isDate()) {
-            rhs = parseDate(rhs);
-        } else if (lhsI.isNumeric()) {
-            rhs = parseNumber(rhs, this.context);
-        }
-
-        rhs = addQuotesIfNecessary(lhsI, rhs);
-        SearchParameters.Operator op = SearchParameters.Operator.fromString(operator);
-        if (op == SearchParameters.Operator.LIKE) {
-            add(GremlinClause.TEXT_CONTAINS, lhsI.getRaw(), IdentifierHelper.getFixedRegEx(rhs));
-        } else if (op == SearchParameters.Operator.IN) {
-            add(GremlinClause.HAS_OPERATOR, lhsI.getRaw(), "within", rhs);
-        } else {
-            add(GremlinClause.HAS_OPERATOR, lhsI.getRaw(), op.getSymbols()[1], rhs);
-        }
-        // record that the attribute has been processed so that the select clause doesn't add a attr presence check
-        attributesProcessed.add(lhsI.getRaw());
-
-
-    }
-
-
-
 
     public void addWhere(String lhs, String operator, String rhs) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("addWhere(lhs={}, operator={}, rhs={})", lhs, operator, rhs);
         }
 
-        String                currentType = context.getActiveTypeName();
-        IdentifierHelper.Info org         = null;
-        IdentifierHelper.Info lhsI        = createInfo(lhs);
-        if (!lhsI.isPrimitive()) {
-            introduceType(lhsI);
-            org = lhsI;
-            lhsI = createInfo(lhs);
-        }
+        // code is modified to handle system parameters. If the lhs starts with __ character bypass all checks
+        if (!lhs.startsWith("__")) {
+            String currentType = context.getActiveTypeName();
+            IdentifierHelper.Info org = null;
+            IdentifierHelper.Info lhsI = createInfo(lhs);
+            if (!lhsI.isPrimitive()) {
+                introduceType(lhsI);
+                org = lhsI;
+                lhsI = createInfo(lhs);
+            }
 
-        if (!context.validator.isValidQualifiedName(lhsI.getQualifiedName(), lhsI.getRaw())) {
-            return;
-        }
+            LOG.debug("lhsI from createInfo {}", lhsI);
+            LOG.debug("Qualififed Name check {},{}", lhsI.getQualifiedName(), lhsI.getRaw());
+            if (!context.validator.isValidQualifiedName(lhsI.getQualifiedName(), lhsI.getRaw())) {
+                return;
+            }
 
-        if (lhsI.isDate()) {
-            rhs = parseDate(rhs);
-        } else if (lhsI.isNumeric()) {
-            rhs = parseNumber(rhs, this.context);
-        }
+            if (lhsI.isDate()) {
+                rhs = parseDate(rhs);
+            } else if (lhsI.isNumeric()) {
+                rhs = parseNumber(rhs, this.context);
+            }
 
-        rhs = addQuotesIfNecessary(lhsI, rhs);
-        SearchParameters.Operator op = SearchParameters.Operator.fromString(operator);
-        if (op == SearchParameters.Operator.LIKE) {
-            add(GremlinClause.TEXT_CONTAINS, lhsI.getQualifiedName(), IdentifierHelper.getFixedRegEx(rhs));
-        } else if (op == SearchParameters.Operator.IN) {
-            add(GremlinClause.HAS_OPERATOR, lhsI.getQualifiedName(), "within", rhs);
-        } else {
-            add(GremlinClause.HAS_OPERATOR, lhsI.getQualifiedName(), op.getSymbols()[1], rhs);
-        }
-        // record that the attribute has been processed so that the select clause doesn't add a attr presence check
-        attributesProcessed.add(lhsI.getQualifiedName());
+            rhs = addQuotesIfNecessary(lhsI, rhs);
+            SearchParameters.Operator op = SearchParameters.Operator.fromString(operator);
+            if (op == SearchParameters.Operator.LIKE) {
+                add(GremlinClause.TEXT_CONTAINS, lhsI.getQualifiedName(), IdentifierHelper.getFixedRegEx(rhs));
+            } else if (op == SearchParameters.Operator.IN) {
+                add(GremlinClause.HAS_OPERATOR, lhsI.getQualifiedName(), "within", rhs);
+            } else {
+                add(GremlinClause.HAS_OPERATOR, lhsI.getQualifiedName(), op.getSymbols()[1], rhs);
+            }
 
-        if (org != null && org.isReferredType()) {
-            add(GremlinClause.DEDUP);
-            add(GremlinClause.IN, org.getEdgeLabel());
-            context.registerActive(currentType);
+            // record that the attribute has been processed so that the select clause doesn't add a attr presence check
+            attributesProcessed.add(lhsI.getQualifiedName());
+
+
+            if (org != null && org.isReferredType()) {
+                add(GremlinClause.DEDUP);
+                add(GremlinClause.IN, org.getEdgeLabel());
+                context.registerActive(currentType);
+            }
+        }else{
+            SearchParameters.Operator op = SearchParameters.Operator.fromString(operator);
+            if (op == SearchParameters.Operator.LIKE) {
+                add(GremlinClause.TEXT_CONTAINS, lhs, IdentifierHelper.getFixedRegEx(rhs));
+            } else if (op == SearchParameters.Operator.IN) {
+                add(GremlinClause.HAS_OPERATOR, lhs, "within", rhs);
+
+            } else {
+                add(GremlinClause.HAS_OPERATOR, lhs, op.getSymbols()[1], rhs);
+            }
         }
     }
 
@@ -332,6 +298,24 @@ public class GremlinQueryComposer {
         }
 
         add(GremlinClause.HASLEAF, typeName);
+    }
+
+    public void addIsLikeClause(String keyword) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("addIsLikeClause(keyword={})", keyword);
+        }
+
+        add(GremlinClause.ISLIKE, keyword);
+    }
+
+
+    public void addRepeatDownTillClause(String typeName) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("addRepeatDownTillClause(typeName={})", typeName);
+        }
+
+        add(GremlinClause.REPEATDOWNTILL, typeName,typeName);
+
     }
 
     public void addGroupBy(String item) {
@@ -560,6 +544,9 @@ public class GremlinQueryComposer {
 
     private String addQuotesIfNecessary(IdentifierHelper.Info rhsI, String rhs) {
         if(rhsI.isNumeric()) return rhs;
+        if(rhsI.getQualifiedName().equals("__modificationTimestamp")){
+            return rhs;
+        }
         if (IdentifierHelper.isTrueOrFalse(rhs)) return rhs;
         if (IdentifierHelper.isQuoted(rhs)) return rhs;
         return IdentifierHelper.getQuoted(rhs);
