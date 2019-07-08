@@ -149,8 +149,6 @@ public class GremlinQueryComposerTest {
     }
 
 
-
-
     @Test
     public void repeatclausetest() {
         String expected =
@@ -158,17 +156,6 @@ public class GremlinQueryComposerTest {
         verify("from hive_table where hive_table isa Dimension repeatdowntill atomic_dataset", expected);
 
     }
-
-    @Test
-    public void repeatclausetest1() {
-        String expected =
-                "g.V().has('__typeName', 'hive_table').outE('classifiedAs').has('__name', within('Dimension')).outV().repeat(outE().inV()).emit(or(__.has('__superTypeNames', 'atomic_dataset'),__.has('__typeName', 'atomic_dataset'))).dedup().limit(25).toList()";
-        verify("from hive_table where name=\"test\"", expected);
-
-    }
-
-
-
 
     @Test
     public void fromDBOrderByNameDesc() {
