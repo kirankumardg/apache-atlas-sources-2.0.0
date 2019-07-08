@@ -66,8 +66,15 @@ hasRClause: K_HASR identifier;
 
 isLikeClause: K_ISLIKE identifier;
 
-repeatDownTillClause: K_
-                       identifier;
+repeatDownTillClause: K_REPEATDOWNTILL identifier;
+
+hasTraitClause: K_HASTRAIT identifier;
+
+guidBetweenClause: K_GUIDBETWEEN identifier identifier;
+
+traitBetweenClause: K_TRAITBETWEEN identifier identifier;
+
+traitContainingClause: K_TRAITCONTAINS identifier;
 
 compE: comparisonClause
     | isClause
@@ -103,7 +110,7 @@ selectClause: K_SELECT selectExpr ;
 
 hasRExpression: hasRClause (K_AS identifier)? ;
 
-singleQrySrc: fromClause | hasRExpression| repeatDownTillClause | isLikeClause| whereClause | fromExpression | expr ;
+singleQrySrc: fromClause | hasRExpression| repeatDownTillClause| hasTraitClause |traitContainingClause | guidBetweenClause| traitBetweenClause | isLikeClause| whereClause | fromExpression | expr ;
 
 groupByExpression: K_GROUPBY K_LPAREN selectExpr K_RPAREN ;
 

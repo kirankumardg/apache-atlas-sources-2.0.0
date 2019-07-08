@@ -189,6 +189,50 @@ public class DSLVisitor extends AtlasDSLParserBaseVisitor<Void> {
 
 
     @Override
+    public Void visitTraitBetweenClause(TraitBetweenClauseContext ctx) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("=> DSLVisitor.visitTraitBetweenClause({})", ctx);
+        }
+        gremlinQueryComposer.addTraitBetweenClause(ctx.identifier().get(0).getText(),ctx.identifier().get(1).getText());
+
+        return super.visitTraitBetweenClause(ctx);
+    }
+
+
+    @Override
+    public Void visitGuidBetweenClause(GuidBetweenClauseContext ctx) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("=> DSLVisitor.visitGuidBetweenClause({})", ctx);
+        }
+        gremlinQueryComposer.addGuidBetweenClause(ctx.identifier().get(0).getText(),ctx.identifier().get(1).getText());
+
+        return super.visitGuidBetweenClause(ctx);
+    }
+
+    @Override
+    public Void visitHasTraitClause(HasTraitClauseContext ctx) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("=> DSLVisitor.visitHasTraitClause({})", ctx);
+        }
+        gremlinQueryComposer.addHasTraitClause(ctx.identifier().getText());
+
+        return super.visitHasTraitClause(ctx);
+    }
+
+
+    @Override
+    public Void visitTraitContainingClause(TraitContainingClauseContext ctx) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("=> DSLVisitor.visitTraitContainingClause({})", ctx);
+        }
+        gremlinQueryComposer.addTraitContainingClause(ctx.identifier().getText());
+
+        return super.visitTraitContainingClause(ctx);
+    }
+
+
+
+    @Override
     public Void visitIsLikeClause(IsLikeClauseContext ctx) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("=> DSLVisitor.visitIsLikeClause({})", ctx);

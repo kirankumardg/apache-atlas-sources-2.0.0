@@ -49,6 +49,7 @@ import java.util.stream.Stream;
 import static org.apache.atlas.model.discovery.SearchParameters.ALL_CLASSIFICATIONS;
 import static org.apache.atlas.model.discovery.SearchParameters.NO_CLASSIFICATIONS;
 
+
 public class GremlinQueryComposer {
     private static final Logger LOG                 = LoggerFactory.getLogger(GremlinQueryComposer.class);
     private static final String ISO8601_FORMAT      = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -292,13 +293,7 @@ public class GremlinQueryComposer {
         add(GremlinClause.HASR, typeName);
     }
 
-    public void addHasLeafClause(String typeName) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("addHasRClause(relationshipName={})", typeName);
-        }
 
-        add(GremlinClause.HASLEAF, typeName);
-    }
 
     public void addIsLikeClause(String keyword) {
         if (LOG.isDebugEnabled()) {
@@ -306,6 +301,41 @@ public class GremlinQueryComposer {
         }
 
         add(GremlinClause.ISLIKE, keyword);
+    }
+
+    public void addHasTraitClause(String identifier) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("addHasTraitClause(keyword={})", identifier);
+        }
+
+        add(GremlinClause.HASTRAIT, identifier);
+    }
+
+
+
+    public void addGuidBetweenClause(String identifier1,String identifier2) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("addGuidBetweenClause(identifier={} {})", identifier1,identifier2);
+        }
+
+       add(GremlinClause.HASGUIDBETWEEN, identifier1,identifier2);
+    }
+
+    public void addTraitContainingClause(String identifier) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("addTraitContainingClause(identifiers={})", identifier);
+        }
+
+        add(GremlinClause.TRAITCONTAINING, identifier);
+    }
+
+
+    public void addTraitBetweenClause(String identifier1,String identifier2) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("addTraitBetweenClause(identifiers={} {} )", identifier1, identifier2);
+        }
+
+        add(GremlinClause.HASTRAITBETWEEN, identifier1,identifier2);
     }
 
 
@@ -476,6 +506,7 @@ public class GremlinQueryComposer {
     }
 
     private void addLimitHelper(final String limit, final String offset) {
+
         if (offset.equalsIgnoreCase("0")) {
             add(GremlinClause.LIMIT, limit, limit);
         } else {
@@ -574,7 +605,7 @@ public class GremlinQueryComposer {
             moveToLast(GremlinClause.LIMIT);
         }
 
-        if (!queryMetadata.hasLimitOffset()) {
+        if (!queryMetadata.hasLimitOffset()  && queryClauses.contains(GremlinClause.HASGUIDBETWEEN)<0) {
             addDefaultLimit();
         }
 

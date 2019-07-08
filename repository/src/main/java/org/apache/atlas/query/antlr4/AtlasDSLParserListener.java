@@ -238,6 +238,46 @@ public interface AtlasDSLParserListener extends ParseTreeListener {
 	 */
 	void exitRepeatDownTillClause(AtlasDSLParser.RepeatDownTillClauseContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link AtlasDSLParser#hasTraitClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterHasTraitClause(AtlasDSLParser.HasTraitClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AtlasDSLParser#hasTraitClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitHasTraitClause(AtlasDSLParser.HasTraitClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link AtlasDSLParser#guidBetweenClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterGuidBetweenClause(AtlasDSLParser.GuidBetweenClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AtlasDSLParser#guidBetweenClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitGuidBetweenClause(AtlasDSLParser.GuidBetweenClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link AtlasDSLParser#traitBetweenClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterTraitBetweenClause(AtlasDSLParser.TraitBetweenClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AtlasDSLParser#traitBetweenClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitTraitBetweenClause(AtlasDSLParser.TraitBetweenClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link AtlasDSLParser#traitContainingClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterTraitContainingClause(AtlasDSLParser.TraitContainingClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AtlasDSLParser#traitContainingClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitTraitContainingClause(AtlasDSLParser.TraitContainingClauseContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link AtlasDSLParser#compE}.
 	 * @param ctx the parse tree
 	 */
