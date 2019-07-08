@@ -18,10 +18,7 @@
 package org.apache.atlas.discovery;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.atlas.ApplicationProperties;
-import org.apache.atlas.AtlasErrorCode;
-import org.apache.atlas.AtlasException;
-import org.apache.atlas.SortOrder;
+import org.apache.atlas.*;
 import org.apache.atlas.annotation.GraphTransaction;
 import org.apache.atlas.authorize.AtlasAuthorizationUtils;
 import org.apache.atlas.authorize.AtlasSearchResultScrubRequest;
@@ -137,7 +134,15 @@ public class EntityDiscoveryService implements AtlasDiscoveryService {
             if (firstElement instanceof AtlasVertex) {
                 for (Object element : queryResult) {
                     if (element instanceof AtlasVertex) {
-                        ret.addEntity(entityRetriever.toAtlasEntityHeaderWithClassifications((AtlasVertex)element));
+                        // In Dsl Search trying to avoid second call. So getting all the attributes in first  search only.
+                        Set <String> attributesList=Collections.emptySet();
+                        AtlasVertex tempVertex = (AtlasVertex)element;
+                        String entityTypeName = GraphHelper.getTypeName(tempVertex);
+                        AtlasEntityType entityType     = typeRegistry.getEntityTypeByName(entityTypeName);
+                        if(entityType!=null && entityType.getAllAttributes()!=null) {
+                            attributesList = entityType.getAllAttributes().keySet();
+                        }
+                        ret.addEntity(entityRetriever.toAtlasEntityHeaderWithClassifications((AtlasVertex)element,attributesList));
                     } else {
                         LOG.warn("searchUsingDslQuery({}): expected an AtlasVertex; found unexpected entry in result {}", dslQuery, element);
                     }
@@ -156,7 +161,15 @@ public class EntityDiscoveryService implements AtlasDiscoveryService {
                                 for (Object o : (List) value) {
                                     Object entry = o;
                                     if (entry instanceof AtlasVertex) {
-                                        ret.addEntity(entityRetriever.toAtlasEntityHeader((AtlasVertex) entry));
+                                        // In Dsl Search trying to avoid second call. So getting all the attributes in first  search only.
+                                        Set <String> attributesList=Collections.emptySet();
+                                        AtlasVertex tempVertex = (AtlasVertex)element;
+                                        String entityTypeName = GraphHelper.getTypeName(tempVertex);
+                                        AtlasEntityType entityType     = typeRegistry.getEntityTypeByName(entityTypeName);
+                                        if(entityType!=null && entityType.getAllAttributes()!=null) {
+                                            attributesList = entityType.getAllAttributes().keySet();
+                                        }
+                                        ret.addEntity(entityRetriever.toAtlasEntityHeader((AtlasVertex) entry,attributesList));
                                     }
                                 }
                             }
@@ -446,6 +459,12 @@ public class EntityDiscoveryService implements AtlasDiscoveryService {
                 resultAttributes.addAll(context.getEntityAttributes());
             }
 
+            // Wanted to add all attributes by default. But derferring as the behavior is changing. Exploration required further
+//            if(searchParameters.getTypeName()!=null) {
+//                AtlasEntityType entityType = typeRegistry.getEntityTypeByName(searchParameters.getTypeName());
+//                resultAttributes.addAll(entityType.getAllAttributes().keySet());
+//            }
+
             AtlasEntityType entityType = context.getEntityType();
             if (entityType != null) {
                 for (String resultAttribute : resultAttributes) {
@@ -633,6 +652,164 @@ public class EntityDiscoveryService implements AtlasDiscoveryService {
 
         return ret;
     }
+
+
+    @Override
+    @GraphTransaction
+    public AtlasSearchResult searchRelatedEntities(String guid, String typeName, String qualifiedName, String relation, String sortByAttributeName, SortOrder sortOrder,
+                                                   boolean excludeDeletedEntities, int limit, int offset, boolean getHeadersOny) throws AtlasBaseException {
+        AtlasSearchResult ret = new AtlasSearchResult(AtlasQueryType.RELATIONSHIP);
+
+        if (StringUtils.isEmpty(relation)) {
+            throw new AtlasBaseException(AtlasErrorCode.INVALID_PARAMETERS, "relation: '" + relation + "'");
+        }
+
+        AtlasVertex     entityVertex = null;
+        String          entityTypeName = null;
+
+        // check if vertex available through guid.
+
+        if (StringUtils.isNotEmpty(guid)) {
+            entityVertex   = entityRetriever.getEntityVertex(guid);
+            entityTypeName = GraphHelper.getTypeName(entityVertex);
+        }
+
+
+        // if vertex is not yet found try to get vertec using typename and qualified name
+        if(entityVertex == null && entityTypeName == null){
+
+            if(StringUtils.isEmpty(typeName)){
+                throw new AtlasBaseException(AtlasErrorCode.INVALID_PARAMETERS, "typeName: '" + typeName + "'" );
+            }else{
+                entityTypeName=typeName;
+            }
+
+
+        }
+
+        AtlasEntityType entityType     = typeRegistry.getEntityTypeByName(entityTypeName);
+        Set <String> attributesList = entityType.getAllAttributes().keySet();
+
+
+        if (entityType == null) {
+            throw new AtlasBaseException(AtlasErrorCode.INVALID_RELATIONSHIP_TYPE, entityTypeName, guid);
+        }
+
+        AtlasAttribute attribute = entityType.getAttribute(relation);
+
+        if (attribute == null) {
+            attribute = entityType.getRelationshipAttribute(relation, null);
+        }
+
+        if (attribute != null) {
+            if (attribute.isObjectRef()) {
+                relation = attribute.getRelationshipEdgeLabel();
+            } else {
+                throw new AtlasBaseException(AtlasErrorCode.INVALID_RELATIONSHIP_ATTRIBUTE, relation, attribute.getTypeName());
+            }
+        }
+
+        if (StringUtils.isEmpty(sortByAttributeName)) {
+            sortByAttributeName = DEFAULT_SORT_ATTRIBUTE_NAME;
+        }
+
+        AtlasAttribute sortByAttribute = entityType.getAttribute(sortByAttributeName);
+
+        if (sortByAttribute == null) {
+            sortByAttributeName = null;
+            sortOrder           = null;
+        } else {
+            sortByAttributeName = sortByAttribute.getQualifiedName();
+
+            if (sortOrder == null) {
+                sortOrder = ASCENDING;
+            }
+        }
+
+        QueryParams  params               = QueryParams.getNormalizedParams(limit, offset);
+        ScriptEngine scriptEngine         = graph.getGremlinScriptEngine();
+        Bindings     bindings             = scriptEngine.createBindings();
+        Set<String>  states               = getEntityStates();
+        String       relatedEntitiesQuery = null;
+
+         if(entityVertex != null && StringUtils.isNotEmpty(guid)) {
+             relatedEntitiesQuery = gremlinQueryProvider.getQuery(RELATIONSHIP_SEARCH);
+         }else{
+             relatedEntitiesQuery = gremlinQueryProvider.getQuery(RELATIONSHIP_SEARCH_WITH_TYPENAME_AND_QUALIFIEDNAME);
+         }
+
+        if (excludeDeletedEntities) {
+            states.remove(DELETED.toString());
+        }
+
+        if (sortOrder == ASCENDING) {
+            relatedEntitiesQuery += gremlinQueryProvider.getQuery(RELATIONSHIP_SEARCH_ASCENDING_SORT);
+            bindings.put("sortAttributeName", sortByAttributeName);
+
+        } else if (sortOrder == DESCENDING) {
+            relatedEntitiesQuery += gremlinQueryProvider.getQuery(RELATIONSHIP_SEARCH_DESCENDING_SORT);
+            bindings.put("sortAttributeName", sortByAttributeName);
+        }
+
+        relatedEntitiesQuery += gremlinQueryProvider.getQuery(TO_RANGE_LIST);
+
+        bindings.put("g", graph);
+
+
+        if(entityVertex != null && StringUtils.isNotEmpty(guid)) {
+            bindings.put("guid", guid);
+        }else{
+            bindings.put("typeName", typeName);
+            bindings.put("qualifiedName", qualifiedName);
+        }
+        bindings.put("relation", relation);
+        bindings.put("states", Collections.unmodifiableSet(states));
+        bindings.put("startIdx", params.offset());
+        bindings.put("endIdx", params.offset() + params.limit());
+
+        
+
+        try {
+            Object result = graph.executeGremlinScript(scriptEngine, bindings, relatedEntitiesQuery, false);
+
+            if (result instanceof List && CollectionUtils.isNotEmpty((List) result)) {
+                List<?> queryResult  = (List) result;
+                Object  firstElement = queryResult.get(0);
+
+                if (firstElement instanceof AtlasVertex) {
+                    List<AtlasVertex>       vertices   = (List<AtlasVertex>) queryResult;
+                    List<AtlasEntityHeader> resultList = new ArrayList<>(vertices.size());
+
+                    for (AtlasVertex vertex : vertices) {
+                        if(getHeadersOny) {
+                            resultList.add(entityRetriever.toAtlasEntityHeader(vertex));
+                        }else{
+                            resultList.add(entityRetriever.toAtlasEntityHeader(vertex, attributesList));
+                        }
+                    }
+
+                    ret.setEntities(resultList);
+                }
+            }
+
+            if (ret.getEntities() == null) {
+                ret.setEntities(new ArrayList<>());
+            }
+        } catch (ScriptException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Gremlin script execution failed for relationship search query: {}", relatedEntitiesQuery, e);
+            }
+
+            throw new AtlasBaseException(AtlasErrorCode.INTERNAL_ERROR, "Relationship search query failed");
+        } finally {
+            graph.releaseGremlinScriptEngine(scriptEngine);
+        }
+
+        scrubSearchResults(ret);
+
+        return ret;
+    }
+
 
     public int getMaxResultSetSize() {
         return maxResultSetSize;

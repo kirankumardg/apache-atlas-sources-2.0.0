@@ -56,7 +56,9 @@ public class AtlasGremlin3QueryProvider extends AtlasGremlin2QueryProvider {
             case TO_RANGE_LIST:
                 return ".range(startIdx, endIdx).toList()";
             case RELATIONSHIP_SEARCH:
-                return "g.V().has('__guid', guid).bothE(relation).has('__state', within(states)).otherV().has('__state', within(states))";
+                return "g.V().has('__guid', guid).bothE().and(__.has('__typeName', relation),__.has('__state', within(states))).otherV().has('__state', within(states))";
+            case RELATIONSHIP_SEARCH_WITH_TYPENAME_AND_QUALIFIEDNAME:
+                return "g.V().and(__.has('__typeName', typeName),__.has('Referenceable.qualifiedName',qualifiedName)).bothE().and(__.has('__typeName', relation),__.has('__state', within(states))).otherV().has('__state', within(states))";
             case RELATIONSHIP_SEARCH_ASCENDING_SORT:
                 return ".order().by(sortAttributeName, incr)";
             case RELATIONSHIP_SEARCH_DESCENDING_SORT:
