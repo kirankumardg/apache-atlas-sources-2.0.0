@@ -94,6 +94,22 @@ public interface AtlasDiscoveryService {
 
     /**
      *
+     * @param guid unique ID of the entity.
+     * @param typeName typename  of the entity.
+     * @param qualifiedName qualifiedName of the entity
+     * @param relation relation name.
+     * @param sortByAttribute sort the result using this attribute name, default value is 'name'
+     * @param sortOrder sorting order
+     * @param excludeDeletedEntities exclude deleted entities in search result.
+     * @param limit number of resultant rows (for pagination). [ limit > 0 ] and [ limit < maxlimit ]. -1 maps to atlas.search.defaultlimit property.
+     * @param offset offset to the results returned (for pagination). [ offset >= 0 ]. -1 maps to offset 0.
+     * @return AtlasSearchResult
+     */
+    AtlasSearchResult searchRelatedEntities(String guid, String typeName, String qualifiedName, String relation, String sortByAttribute, SortOrder sortOrder, boolean excludeDeletedEntities, int limit, int offset,boolean getHeadersOny) throws AtlasBaseException;
+
+
+    /**
+     *
      *
      * @param savedSearch Search to be saved
      * @throws AtlasBaseException

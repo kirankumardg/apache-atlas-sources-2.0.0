@@ -382,6 +382,54 @@ public class DiscoveryREST {
         }
     }
 
+
+    /**
+     * Relationship search to search for related entities satisfying the search parameters
+     *
+     * @param guid            Attribute name
+     * @param typeName        typeName
+     * @param relation        relationName
+     * @param sortByAttribute sort the result using this attribute name, default value is 'name'
+     * @param sortOrder       sorting order
+     * @param limit           limit the result set to only include the specified number of entries
+     * @param offset          start offset of the result set (useful for pagination)
+     * @return Atlas search result
+     * @throws AtlasBaseException
+     * @HTTP 200 On successful search
+     * @HTTP 400 guid is not a valid entity type or attributeName is not a valid relationship attribute
+     */
+    @GET
+    @Path("relatedEntities")
+    public AtlasSearchResult searchRelatedEntitiesByRange(@QueryParam("guid") String guid,
+                                                          @QueryParam("typeName") String typeName,
+                                                          @QueryParam("qualifiedName") String qualifiedName,
+                                                          @QueryParam("relation") String relation,
+                                                          @QueryParam("sortBy") String sortByAttribute,
+                                                          @QueryParam("sortOrder") SortOrder sortOrder,
+                                                          @QueryParam("excludeDeletedEntities") boolean excludeDeletedEntities,
+                                                          @QueryParam("limit") int limit,
+                                                          @QueryParam("offset") int offset,
+                                                          @QueryParam("getHeadersOny") boolean getHeadersOny) throws AtlasBaseException {
+
+
+        Servlets.validateQueryParamLength("relation", relation);
+
+
+        AtlasPerfTracer perf = null;
+
+        try {
+            if (AtlasPerfTracer.isPerfTraceEnabled(PERF_LOG)) {
+                perf = AtlasPerfTracer.getPerfTracer(PERF_LOG, "DiscoveryREST.searchRelatedEntitiesByRangeUsingGremlin(" + guid + ", " + typeName + ", " + qualifiedName + ", " +
+                        ", " + relation + ", " + sortByAttribute + ", " + sortOrder + ", " + excludeDeletedEntities + ", " + ", " + limit + ", " + offset + ")");
+            }
+
+            return atlasDiscoveryService.searchRelatedEntities(guid, typeName, qualifiedName, relation, sortByAttribute, sortOrder, excludeDeletedEntities, limit, offset, getHeadersOny);
+        } finally {
+            AtlasPerfTracer.log(perf);
+        }
+    }
+
+
     /**
      * @param savedSearch
      * @return the saved search-object
